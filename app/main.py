@@ -1,14 +1,9 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
-from app.routers import users
 from app.config import DEBUG_MODE
+from app.routers import auth, users
 
 app = FastAPI(debug=DEBUG_MODE)
 
-
 app.include_router(users.router)
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello!"}
+app.include_router(auth.router)

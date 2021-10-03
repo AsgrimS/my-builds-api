@@ -1,8 +1,7 @@
-from sqlalchemy import Boolean, Column, Integer, String, Table, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from app.database import Base
-
 
 users_permissions = Table(
     "users_permissions",

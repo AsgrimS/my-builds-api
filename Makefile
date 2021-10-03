@@ -12,3 +12,6 @@ migrate:
 
 generate_migration:
 	alembic revision --autogenerate -m "$$message"
+
+isort:
+	isort .
