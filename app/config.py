@@ -15,3 +15,7 @@ SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@{host}/{db}"
 
 # FastAPI
 DEBUG_MODE = cast(bool, os.getenv("DEBUG_MODE", False))
+
+
+class Permissions:
+    admin_permission = "admin_permission"
