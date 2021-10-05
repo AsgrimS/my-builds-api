@@ -9,6 +9,7 @@ import sqlalchemy as sa
 from alembic import op
 
 from app.config import Permissions
+from app.security import get_password_hash
 
 # revision identifiers, used by Alembic.
 revision = "59f0ee41c5a2"
@@ -27,7 +28,7 @@ def upgrade():
         sa.UniqueConstraint("name"),
     )
     op.create_index(op.f("ix_permissions_id"), "permissions", ["id"], unique=False)
-    op.create_table(
+    users_table = op.create_table(
         "users",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(), nullable=True),
@@ -37,7 +38,7 @@ def upgrade():
     )
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
     op.create_index(op.f("ix_users_id"), "users", ["id"], unique=False)
-    op.create_table(
+    users_permissions_table = op.create_table(
         "users_permissions",
         sa.Column("users_id", sa.Integer(), nullable=True),
         sa.Column("permissions_id", sa.Integer(), nullable=True),
@@ -54,6 +55,16 @@ def upgrade():
 
     if permissions_table is not None:
         op.bulk_insert(permissions_table, [{"id": 1, "name": Permissions.admin_permission}])
+    if users_table is not None:  # TODO Remvoe for release version.
+        op.bulk_insert(
+            users_table,
+            [
+                {"id": 1, "email": "admin", "password": get_password_hash("qwerty")},
+                {"id": 2, "email": "user", "password": get_password_hash("qwerty")},
+            ],
+        )
+    if users_permissions_table is not None:
+        op.bulk_insert(users_permissions_table, [{"users_id": 1, "permissions_id": 1}])
 
 
 def downgrade():

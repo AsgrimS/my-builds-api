@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -19,3 +21,13 @@ class UserSchema(BaseModel):
 class UserCreateSchema(UserSchema):
     permissions: set[str]
     password: str
+
+
+class UserEditSchema(BaseModel):
+    email: Optional[str]
+    permissions: Optional[set[str]]
+    password: Optional[str]
+
+
+class UserResponseSchema(UserSchema):
+    id: int

@@ -13,5 +13,11 @@ migrate:
 generate_migration:
 	alembic revision --autogenerate -m "$$message"
 
-isort:
-	isort .
+clean:
+	docker-compose down && sudo rm -rf postgres-data
+
+format:
+	autoflake -r -i --remove-all-unused-imports . &&\
+	isort . &&\
+	black app &&\
+	black migrations

@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from app.config import DEBUG_MODE
 from app.routers import auth, users
