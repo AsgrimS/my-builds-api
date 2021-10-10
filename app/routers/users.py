@@ -1,92 +1,93 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 
-from app.database import get_db
+from app.database import get_session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.dependencies import get_current_user, require_admin
-from app.models.users import Permission, User
-from app.schemas.users import PermissionSchema, UserCreateSchema, UserEditSchema, UserResponseSchema
+from app.models.users import User, UserCreate, UserReadWithPermissions, UserRead, UserEdit
 from app.security import get_password_hash
 from app.utils import get_user_by_id
+
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/me", response_model=UserResponseSchema, description="Gets a current user.")
-def get_me(current_user: User = Depends(get_current_user)):
+@router.get("/me", response_model=UserReadWithPermissions, description="Gets a current user.")
+async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
 @router.get(
     "",
-    dependencies=[Depends(require_admin)],
-    response_model=list[UserResponseSchema],
+    response_model=list[UserReadWithPermissions],
     description="Gets a list of all users.",
 )
-def get_users(db: Session = Depends(get_db)):
-    users = db.query(User).all()
+async def get_users(session: AsyncSession = Depends(get_session)):
+    result = await session.execute(select(User).options(joinedload(User.permissions)))
+    users = result.unique().scalars().all()
     return users
+
+
+@router.get(
+    "/{user_id}",
+    response_model=UserReadWithPermissions,
+    description="Gets a specific user.",
+)
+async def get_user(user_id: int, session: AsyncSession = Depends(get_session)):
+    user = await get_user_by_id(user_id, session)
+    return user
 
 
 @router.post(
     "",
-    response_model=UserResponseSchema,
+    response_model=UserRead,
     status_code=status.HTTP_201_CREATED,
     description="Creates a new user.",
 )
-def create_user(new_user_data: UserCreateSchema, db: Session = Depends(get_db)):
-    permissions = db.query(Permission).filter(Permission.name.in_(new_user_data.permissions)).all()
+async def create_user(user_data: UserCreate, session: AsyncSession = Depends(get_session)):
+    user = await session.execute(select(User).where(User.email == user_data.email))
+    if user.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is already in use.")
 
-    if db.query(User).filter_by(email=new_user_data.email).one_or_none():
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use.")
+    new_user = User(email=user_data.email, password=get_password_hash(user_data.password))
 
-    new_user = User(
-        email=new_user_data.email,
-        password=get_password_hash(new_user_data.password),
-        permissions=permissions,
-    )
+    session.add(new_user)
+    await session.commit()
+    await session.refresh(new_user)
 
-    db.add(new_user)
-    db.commit()
     return new_user
 
 
 @router.patch(
     "/{user_id}",
     dependencies=[Depends(require_admin)],
-    response_model=UserResponseSchema,
+    response_model=UserRead,
     description="Modify user.",
 )
-def edit_user(user_id: int, new_data: UserEditSchema, db: Session = Depends(get_db)):
-    user = get_user_by_id(user_id, db)
+async def edit_user(
+    user_id: int, user_data: UserEdit, session: AsyncSession = Depends(get_session)
+):
+    user = await get_user_by_id(user_id, session)
 
-    for key, value in new_data:
+    for key, value in user_data:
         if value:
             setattr(user, key, value)
+    await session.commit()
 
-    db.commit()
     return user
 
 
 @router.delete(
     "/{user_id}",
-    dependencies=[Depends(require_admin)],
-    response_model=UserResponseSchema,
+    response_model=UserRead,
     description="Deletes user.",
 )
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = get_user_by_id(user_id, db)
+async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)):
+    user = await get_user_by_id(user_id, session)
 
-    db.delete(user)
-    db.commit()
+    await session.delete(user)
+    await session.commit()
+
     return user
-
-
-@router.get(
-    "/permissions",
-    dependencies=[Depends(require_admin)],
-    response_model=list[PermissionSchema],
-    description="Gets a list of avaible permissions.",
-)
-def get_permissions(db: Session = Depends(get_db)):
-    permissions = db.query(Permission).all()
-    return permissions

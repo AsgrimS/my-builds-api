@@ -1,14 +1,17 @@
 from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 from app.config import ALGORITHM, SECRET_KEY, Permissions
-from app.database import get_db
+from app.database import get_session
 from app.models.users import User
 from app.security import get_user_by_email, oauth2_scheme
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_session)
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -22,7 +25,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     except JWTError:
         raise credentials_exception
 
-    if not (user := get_user_by_email(email, db)):
+    if not (user := await get_user_by_email(email, session)):
         raise credentials_exception
 
     return user

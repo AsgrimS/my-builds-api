@@ -11,7 +11,7 @@ password = os.getenv("POSTGRES_PASSWORD")
 db = os.getenv("POSTGRES_DB")
 host = os.getenv("POSTGRES_HOST")
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@{host}/{db}"
+SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{host}/{db}"
 
 # FastAPI
 DEBUG_MODE = cast(bool, os.getenv("DEBUG_MODE", False))
@@ -20,6 +20,10 @@ DEBUG_MODE = cast(bool, os.getenv("DEBUG_MODE", False))
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15)
+
+# Data Validators
+MAX_PASSWORD_LENGTH = 128
+MIN_PASSWORD_LENGTH = 3
 
 
 class Permissions:

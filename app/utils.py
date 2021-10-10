@@ -1,16 +1,24 @@
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from app.models.users import User
 
 
-def get_user_by_email(email: str, db: Session) -> User:
-    if not (user := db.query(User).filter_by(email=email).one_or_none()):
+async def get_user_by_email(user_email: str, session: AsyncSession) -> User:
+    result = await session.execute(
+        select(User).options(joinedload(User.permissions)).where(User.email == user_email)
+    )
+    if not (user := result.unique().scalar_one_or_none()):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
     return user
 
 
-def get_user_by_id(id: int, db: Session) -> User:
-    if not (user := db.query(User).get(id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
+async def get_user_by_id(user_id: int, session: AsyncSession) -> User:
+    result = await session.execute(
+        select(User).options(joinedload(User.permissions)).where(User.id == user_id)
+    )
+    if not (user := result.unique().scalar_one_or_none()):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     return user

@@ -1,29 +1,51 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
-from sqlalchemy.orm import relationship
+from typing import Optional, List
+from sqlalchemy import String, Column
+from sqlmodel import SQLModel, Field, Relationship
 
-from app.database import Base
+from app.validators import PasswordValidator
 
-users_permissions = Table(
-    "users_permissions",
-    Base.metadata,
-    Column("users_id", ForeignKey("users.id")),
-    Column("permissions_id", ForeignKey("permissions.id")),
-)
-
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    password = Column(String)
-    is_active = Column(Boolean, default=True)
-
-    permissions = relationship("Permission", secondary=users_permissions)
+#  Relationships
+class UserPermissionLink(SQLModel, table=True):
+    user_id: Optional[int] = Field(default=None, foreign_key="user.id", primary_key=True)
+    permission_id: Optional[int] = Field(
+        default=None, foreign_key="permission.id", primary_key=True
+    )
 
 
-class Permission(Base):
-    __tablename__ = "permissions"
+#  Permission
+class PermissionBase(SQLModel):
+    name: str = Field(sa_column=Column("name", String, unique=True), max_length=75)
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True)
+
+class Permission(PermissionBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+#  User
+class UserBase(SQLModel):
+    email: str = Field(sa_column=Column("email", String, unique=True), max_length=320)
+
+
+class UserCreate(UserBase, PasswordValidator):
+    password: str
+
+
+class UserEdit(SQLModel, PasswordValidator):
+    email: Optional[str]
+    password: Optional[str]
+
+
+class User(UserBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    password: str
+    permissions: List[Permission] = Relationship(link_model=UserPermissionLink)
+    is_active: Optional[bool] = Field(default=True)
+
+
+class UserRead(UserBase):
+    id: int
+    is_active: bool
+
+
+class UserReadWithPermissions(UserRead):
+    permissions: list[PermissionBase] = []
