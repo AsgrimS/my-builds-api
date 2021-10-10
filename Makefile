@@ -1,4 +1,4 @@
-run_dev:
+run:
 	uvicorn app.main:app --reload
 
 run_db:
@@ -10,5 +10,14 @@ stop_db:
 migrate:
 	alembic upgrade head
 
-make_migration:
-	alembic revision -m "$$message"
+generate_migration:
+	alembic revision --autogenerate -m "$$message"
+
+clean:
+	docker-compose down && sudo rm -rf postgres-data
+
+format:
+	autoflake -r -i --remove-all-unused-imports . &&\
+	isort . &&\
+	black app &&\
+	black migrations

@@ -11,12 +11,21 @@ uvicorn = "^0.15.0"
 SQLAlchemy = "^1.4.25"
 python-dotenv = "^0.19.0"
 alembic = "^1.7.3"
-psycopg2-binary = "^2.9.1"
+python-multipart = "^0.0.5"
+isort = "^5.9.3"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+sqlmodel = "^0.0.4"
+asyncpg = "^0.24.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 black = "^21.9b0"
 ipdb = "^0.13.9"
+autoflake = "^1.4"
+
+[tool.black]
+line-length = 100
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
