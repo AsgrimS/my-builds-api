@@ -1,8 +1,10 @@
-from typing import Optional, List
-from sqlalchemy import String, Column
-from sqlmodel import SQLModel, Field, Relationship
+from typing import List, Optional
+
+from sqlalchemy import Column, String
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.validators import PasswordValidator
+
 
 #  Relationships
 class UserPermissionLink(SQLModel, table=True):

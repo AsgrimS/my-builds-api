@@ -2,7 +2,6 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from app.config import ALGORITHM, SECRET_KEY, Permissions
 from app.database import get_session
 from app.models.users import User

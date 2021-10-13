@@ -5,10 +5,10 @@ Revises:
 Create Date: 2021-10-10 18:55:41.093942
 
 """
-from alembic import op
 import sqlalchemy as sa
-
 import sqlmodel.sql.sqltypes
+from alembic import op
+
 from app.security import get_password_hash
 
 # revision identifiers, used by Alembic.

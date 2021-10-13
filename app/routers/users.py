@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.database import get_session
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.dependencies import get_current_user, require_admin
-from app.models.users import User, UserCreate, UserReadWithPermissions, UserRead, UserEdit
+from app.models.users import User, UserCreate, UserEdit, UserRead, UserReadWithPermissions
 from app.security import get_password_hash
 from app.utils import get_user_by_id
-
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -91,3 +89,8 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)
     await session.commit()
 
     return user
+
+
+@router.get("/hello/hello")
+async def read_root():
+    return {"Hello": "World"}

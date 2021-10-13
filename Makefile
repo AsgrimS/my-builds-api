@@ -1,23 +1,28 @@
 run:
-	uvicorn app.main:app --reload
+	@uvicorn app.main:app --reload
 
 run_db:
-	docker-compose up -d
+	@docker-compose up -d postgres
 
 stop_db:
-	docker-compose stop
+	@docker-compose stop postgres
 
 migrate:
-	alembic upgrade head
+	@alembic upgrade head
 
 generate_migration:
-	alembic revision --autogenerate -m "$$message"
+	@alembic revision --autogenerate -m "$$message"
 
 clean:
-	docker-compose down && sudo rm -rf postgres-data
+	@docker-compose down && sudo rm -rf postgres-data
 
 format:
-	autoflake -r -i --remove-all-unused-imports . &&\
-	isort . &&\
-	black app &&\
-	black migrations
+	@autoflake -r -i --remove-all-unused-imports .
+	@isort .
+	@black app tests migrations
+
+test:
+	@docker-compose rm -s -f -v postgres_test
+	@docker-compose up -d postgres_test
+	@sleep 1
+	@pytest tests -rA -s
