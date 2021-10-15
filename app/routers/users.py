@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.database import get_session
-from app.dependencies import get_current_user, require_admin
+from app.dependencies import get_current_user
 from app.models.users import User, UserCreate, UserEdit, UserRead, UserReadWithPermissions
 from app.security import get_password_hash
 from app.utils import get_user_by_id
@@ -60,7 +60,6 @@ async def create_user(user_data: UserCreate, session: AsyncSession = Depends(get
 
 @router.patch(
     "/{user_id}",
-    dependencies=[Depends(require_admin)],
     response_model=UserRead,
     description="Modify user.",
 )
@@ -89,8 +88,3 @@ async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)
     await session.commit()
 
     return user
-
-
-@router.get("/hello/hello")
-async def read_root():
-    return {"Hello": "World"}

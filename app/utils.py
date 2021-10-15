@@ -11,7 +11,7 @@ async def get_user_by_email(user_email: str, session: AsyncSession) -> User:
         select(User).options(joinedload(User.permissions)).where(User.email == user_email)
     )
     if not (user := result.unique().scalar_one_or_none()):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     return user
 
 

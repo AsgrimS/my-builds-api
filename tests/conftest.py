@@ -6,6 +6,7 @@ from sqlmodel import SQLModel
 
 from app.dependencies import get_session
 from app.main import app
+from app.models.users import User
 
 
 @pytest.fixture(name="session")
@@ -41,9 +42,56 @@ def client_fixture(session: AsyncSession):
 
 
 @pytest.fixture(name="async_post")
-async def async_post(client: AsyncClient):
+async def async_post_fixture(client: AsyncClient):
     async def _wrapped(url, **kwargs):
         async with client:
             return await client.post(url, **kwargs)
 
     return _wrapped
+
+
+@pytest.fixture(name="async_get")
+async def async_get_fixture(client: AsyncClient):
+    async def _wrapped(url, **kwargs):
+        async with client:
+            return await client.get(url, **kwargs)
+
+    return _wrapped
+
+
+@pytest.fixture(name="async_patch")
+async def async_patch_fixture(client: AsyncClient):
+    async def _wrapped(url, **kwargs):
+        async with client:
+            return await client.patch(url, **kwargs)
+
+    return _wrapped
+
+
+@pytest.fixture(name="async_delete")
+async def async_delete_fixture(client: AsyncClient):
+    async def _wrapped(url, **kwargs):
+        async with client:
+            return await client.delete(url, **kwargs)
+
+    return _wrapped
+
+
+@pytest.fixture(name="user")
+async def user_fixture(session: AsyncSession):
+    user = User(email="bob@mail.com", password="qwerty")
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return user
+
+
+@pytest.fixture(name="admin")
+async def admin_fixture(session: AsyncSession):
+    user = User(email="admin@mail.com", password="qwerty")
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return user

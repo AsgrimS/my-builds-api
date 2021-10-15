@@ -25,4 +25,5 @@ test:
 	@docker-compose rm -s -f -v postgres_test
 	@docker-compose up -d postgres_test
 	@sleep 1
-	@pytest tests -rA -s
+	@pytest tests -sv --pdb
+	@# @pytest tests -sv --pdb --cov-report term-missing:skip-covered --cov=app tests/
